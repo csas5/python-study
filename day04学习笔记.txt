@@ -1,0 +1,79 @@
+while循环
+当条件成立时，一直执行。
+条件为True
+    ↓
+执行代码
+    ↓
+回到条件判断
+    ↓
+继续执行
+直到：条件变成False
+i+=1 == i=i+1
+while 条件:
+    重复执行
+else:
+    循环结束执行
+意思：
+while条件一直为True
+        ↓
+一直循环
+
+直到while条件变成False
+        ↓
+执行else
+
+如何区分代码属于while循环，哪些代码不属于while循环。
+靠缩进（空格数量）区分。
+属于while循环的代码
+i = 1
+
+while i <= 5:
+    print(i)  #
+    i += 1   #都有缩进4个空格这表明这两行都属于while
+不属于while循环的代码
+如果取消缩进：即直接顶格输入print("循环结束")没有空格不属于while内部
+
+day6
+user_name="admin"
+user_password="123456"
+count=0
+while(count<3):
+    input_username=input("请输入用户名：")   #这里可能出错的点在于不能同时将用户名和密码用and连接在一起判断，因为用户可能只输入了用户名错了就直接else。
+    input_password=input("请输入密码：")
+    if user_name==input_username and user_password==input_password:
+        print("登录成功！")
+        break
+    else:
+        print("用户名或密码错误，请重新输入！")
+        count+=1
+    if count==3:
+        print("输入错误次数过多，账号已锁定！")
+
+day6
+列表就是一次保存多个数据。符号为[]
+Python索引从0开始
+
+append()使用范例
+students=[]
+students.append(student)
+第一次输入：张三
+执行：students.append("张三")
+结果：["张三"]
+第二次：["张三","李四"]
+
+遍历数组推荐for
+for循环的语法是for 变量 in 列表名
+for student in students
+部分	作用
+for	告诉Python开始遍历
+student	临时变量，保存当前元素
+students	被遍历的列表
+
+len() 返回列表中元素的数量。
+len只能计算：
+字符串长度
+列表数量
+元素数量
+不能计算整数因为数字没有长度
+
+print("总成绩：%s，平均成绩：%s" % (total, average))格式规范写法
