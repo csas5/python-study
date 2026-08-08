@@ -1,0 +1,133 @@
+文件是什么？
+变量：存在内存里面
+电脑关机：消失
+文件：存在硬盘里面
+电脑关机：还在
+
+打开文件 open()
+基本结构：
+open(文件名, 模式)
+打开：
+student.txt
+
+文件模式：
+
+模式	作用
+r	读取
+w	写入
+a	追加
+
+r模式（read）
+读取文件：
+文件必须存在
+假如读取students.txt 里面有jack tom 读取jack tom
+
+w模式（write）
+写文件：
+特点：会覆盖原内容
+原文件：jack tom
+重新写：lucy  结果为lucy
+
+a模式（append）
+原文件：jack  
+追加：tom
+结果：jack tom
+
+读取文件 read()
+作用：一次读取全部内容。
+例如文件：
+hello python
+
+读取后：
+hello python
+注意：
+read返回的是：字符串
+
+写入文件 write()
+write写入：
+必须写字符串。
+例如保存jack可行 但是数字90不能直接写需要转换成字符串“90”
+
+Day9核心：保存学生数据
+现在数据类似
+students=[
+    {
+        "name":"jack",
+        "age":23,
+        "score":90
+    }
+]
+这是python对象不能直接保存需要转换
+流程：
+dict/list
+↓
+转换成文本
+↓
+保存文件
+
+读取：
+文件文本
+↓
+转换回来
+↓
+list/dict
+
+JSON是什么？（重点）
+JSON是一种：
+用来保存结构化数据的文本格式
+python和json的关系即为
+Python dict
+      ↓
+     JSON
+      ↓
+文件保存
+
+json模块
+Python自带。
+作用：
+Python数据 ↔ JSON字符串
+两个核心方法：
+
+1. json.dumps()   #存储
+作用：
+Python对象
+↓
+JSON字符串
+例如 list/dict 转换成字符串
+
+2. json.loads()     #读取    
+作用：
+JSON字符串
+↓
+Python对象
+
+保存流程：
+students列表
+↓
+json转换
+↓
+写入文件
+↓
+保存
+
+读取流程：    
+读取文件
+↓
+json转换
+↓
+students列表
+
+文件操作推荐流程：
+open
+ ↓
+操作(read/write)
+ ↓
+close
+
+Python实际开发更推荐：
+with open()
+因为它会自动关闭文件
+
+方法	处理什么
+json.load()	直接读取文件对象
+json.loads()	读取字符串
