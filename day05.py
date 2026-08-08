@@ -106,24 +106,62 @@
 #     return result
 # print(average(scores))
 
-students=[
-    {
-        "name":"jack",
-        "age":23,
-        "score":90
-    },
-    {
-        "name":"tom",
-        "age":21,
-        "score":85
-    }
-]
-def get_average_score(students):
-    total = 0
-    for student in students:
-        total += student["score"]
-    get_average_score = total / len(students)   #错误在计算人数这里
-    return get_average_score
-print(get_average_score(students))
+# students=[
+#     {
+#         "name":"jack",
+#         "age":23,
+#         "score":90
+#     },
+#     {
+#         "name":"tom",
+#         "age":21,
+#         "score":85
+#     }
+# ]
+# def get_average_score(students):
+#     total = 0
+#     for student in students:
+#         total += student["score"]
+#     result = total / len(students)   #错误在计算人数这里   想要：学生数量 应该使用：len(students)  因为：len()是获取列表长度。
+#     return result
+# print(get_average_score(students))
+# students=[]              
+# def add_student(name,age,score):   #首先这几个函数都用致命的缺陷，没有判断数据是否合法，而且返回的值判断也有问题，添加学生建议返回真假值
+#    student={
+#       "name": name,
+#       "age": age,
+#       "score": score
+#    }
+#    students.append(student)
+#    return student
+# def get_average_score(students):
+#     total = 0
+#     for student in students:
+#         total += student["score"]
+#     result = total / len(students)
+#     return result
+# def find_top_student(students):
+#     max_top_score=0
+#     max_top_student=""
+#     for student in students:
+#         if max_top_score<student["score"]:
+#             max_top_score = student["score"]
+#             max_top_student = student["name"]
+#     return max_top_student
 
-    
+# #优化一下add_student函数
+# students=[]
+# def add_student(name,age,score):
+#     if name == "":
+#         return False
+#     if age<0 or age>150:     #这里永远false 要用or这是判断不是同时满足
+#         return False
+#     if score<0 or score>100:
+#         return False
+#     student={
+#         "name" : name,
+#         "age" : age,
+#         "score": score
+#     }
+#     students.append(student)
+#     return True

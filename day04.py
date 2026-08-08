@@ -104,8 +104,8 @@
 # 输出最高分是多少
 # 输出最低分是多少
 scores=[88,76,95,59,66,40,100]
-max=0
-small=scores[0]
+max=0 #不建议变量名叫 max  
+small=scores[0]  #small建议改成min_score
 for score in scores:
     if max<score:
         max=score

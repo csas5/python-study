@@ -78,11 +78,10 @@
 
 balance=5000
 cost=float(input("请输入消费金额："))
-if cost<=balance:
-    balance=balance-cost
+if cost<=balance and cost>0:
+    balance=balance-cost    
     print("消费成功，当前余额为：",balance)
 elif cost>balance:
     print("余额不足，无法消费。")
 else:
-    cost<=0
     print("消费金额必须大于0。")
