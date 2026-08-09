@@ -1,0 +1,44 @@
+"%s" % 数据
+这是旧式格式化。
+
+Python现在更常用：
+f字符串
+print(f"姓名：{student['name']}")
+
+删除函数中已经找到目标学生怎么删除对应的数据
+students.remove()
+remove() 少了删除目标
+再考虑一个边界情况
+如果输入：
+不存在的名字   后面在讨论
+
+正确流程：
+打开程序
+↓
+读取 students.json
+↓
+加载到 students列表
+↓
+显示菜单
+
+choice = input("请输入你的选择：")
+
+隐藏问题
+Python中：
+只要函数内部出现赋值：
+Python会认为：
+main()里面的students是一个新的局部变量
+
+怎么判断文件是否存在？
+方法1：os.path.exists()
+导入import os
+os.path.exists("students.json")去判断if条件
+
+如果当前操作失败：
+应该：
+continue
+结束本次循环，重新回到菜单
+
+启动时没有加载历史数据（重要）
+每次启动：
+都是空列表。
