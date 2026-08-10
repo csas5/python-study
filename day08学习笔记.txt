@@ -1,0 +1,68 @@
+异常处理
+例如 你定义了一个int类型的数据而用户输入输入了abc程序直接报错
+所以需要
+try
+except
+
+try except 基础
+try:
+    可能出错的代码
+
+except:
+    出错后的处理
+
+例如：
+
+try:
+    age=int(input("请输入年龄:"))
+
+except:
+    print("请输入数字")
+这样输入abc  结果会继续请输入数字直到输入合法数字为止
+
+异常后必须：continue
+例如：
+
+try:
+    age=int(input("please input a age:"))
+
+except:
+    print("请重新输入")
+    continue
+
+try主要保护：
+类型转换：
+int()
+float()
+json.loads()这些容易出错的地方
+
+load_students异常保护
+def load_students():
+
+    try:
+        file=open("students.json","r")
+        content=file.read()
+        file.close()
+
+        data=json.loads(content)
+
+        return data
+
+    except:
+        return []
+
+show_students还有一个隐藏小问题
+NOW：
+def show_students(students):
+    for student in students:
+if：students中为空 那么将什么都不显示
+优化：
+def show_students(students):
+
+    if len(students)==0:
+        print("暂无学生")
+        return
+
+    for student in students:
+        print(...)
+

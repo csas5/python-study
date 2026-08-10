@@ -36,22 +36,25 @@ def load_students():
 
 
 def main():
-    students=[]
+    if os.path.exists("students.json"):
+        students = load_students()
+    else:
+        students = []                   #在main函数中，main的局部变量，只有写在所有函数外面的变量才是全局变量   有个缺陷这里的需要加载数据
     while True:                                                                     
         print("==================\n")
         print("    学生管理系统   ")
         print("==================\n")
         choice=input("please choice a number:")
-        if choice == "1":
-            name = input("please input a name")     
-            if name=="":
+        if choice == "1":       
+            name = input("please input a name:")         #先输入在判断合法性       
+            if name=="":                
                 print("error")
-                continue
-            age = int(input("please input a age"))
+                continue          
+            age = int(input("please input a age:"))
             if age<0 or age>100:
                 print("error")
                 continue
-            score = float(input("please input a score"))
+            score = float(input("please input a score:"))
             if score<=0 or score>100:
                 print("error")
                 continue
@@ -66,7 +69,7 @@ def main():
         elif choice == "4":
             save_students(students)
         elif choice =="5":
-            if os.path.exists("students.json"):
+            if os.path.exists("students.json"):      #判断文件是否存在可以写在函数中
                 print("文件存在")
             else:
                 print("文件不存在")
@@ -76,6 +79,7 @@ def main():
         elif choice == "6":
             save_students(students)
             break
+#优化点有很多   启动加载   load文件不存在处理   完善提示
 
 main()
 
