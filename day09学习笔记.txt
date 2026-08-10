@@ -1,0 +1,205 @@
+Day12最终项目结构
+student_system/
+│
+├── main.py
+│
+├── student.py
+│
+├── data.py
+│
+└── students.json
+main.py
+菜单、用户输入、控制程序流程
+student.py
+添加、查看、删除学生
+data.py
+JSON保存、JSON读取
+students.json
+保存学生数据
+
+新概念：模块
+Python 中：
+一个 .py 文件就是一个模块。
+例如：student.py中有函数那么其他文件可以导入
+例如：import student
+然后使用student.add_student()  #这里用add函数代指所用函数
+
+第一种导入方式：import
+假设student.p定义了一个hello函数
+那么main.py可以 import student 接着student.hello()  
+这里要理解：import student不是把整个项目重新运行一遍。
+它的核心作用是：
+让 main.py 可以使用 student.py 中的内容。
+
+第二种导入方式：from
+格式：from student import hello
+然后直接：
+hello()
+
+注意：为什么在main.py中不能直接写add_student 因为mian中根本没有这个函数因为这个函数属于student模块
+
+模块职责
+main.py
+应该主要负责：
+菜单
+输入
+流程控制
+
+student.py
+应该负责：
+添加学生
+查看学生
+删除学生
+
+data.py
+应该负责：
+保存数据
+读取数据
+JSON处理
+
+Day13 学习目标
+今天学习三个重点：
+with open() 文件自动关闭
+精确异常捕获
+异常处理在项目中的正确使用
+在data.py中读取函数中有个风险如果中途发生错误比如json格式错误程序异常直接跳转到except那么file.close（）就可能没执行，结果文件可能没有正常关闭
+
+python提供：
+with open（）
+格式：
+with open("文件名","模式") as 文件对象:
+    操作
+例如：
+with open("students.json","r") as file:
+    content=file.read()
+这样即使中间报错python也会自动关闭
+将file=open("students.json","w")
+    file.write(data)
+    file.close()
+改成：
+    with open("students.json","w") as file:
+        file.write(data)
+为什么with后面不用close
+因为：with open()
+相当于：
+try:
+    打开文件
+    操作文件
+finally:
+    关闭文件
+也就是return 和异常都会关闭
+
+第二个重点：不要随便写 except
+except:
+    return []
+这个叫裸异常捕获 问题在于什么错误都能吃掉 比如文件不存在和json错误
+但如果代码写错比如prin（content）也会吃掉
+
+正确写法：捕获具体异常
+例如：读取文件1. 文件不存在FileNotFoundError 2. JSON格式错误json.JSONDecodeError
+
+裸 except 的问题
+相当于：
+所有错误
+    ↓
+全部处理
+如果程序员自己写错代码会一直报错
+导致：
+不容易发现bug
+调试困难
+不知道真正错误原因
+
+Exception是什么？
+Python所有异常都有继承关系。
+例如：
+Exception
+│
+├── ValueError
+│
+├── FileNotFoundError
+│
+├── TypeError
+│
+└── JSONDecodeError
+关系：
+Exception
+    |
+    ├── ValueError
+    |
+    ├── FileNotFoundError
+    |
+    └── JSONDecodeError
+所以：
+except Exception:
+捕获：
+所有普通异常。
+类似：
+except:
+但是更规范。
+
+裸 except抓所有东西。
+包括一些系统级错误。
+
+具体异常
+最好：
+try:
+    age=int(input())
+
+except ValueError:  #捕获值错误 具体错误
+    print("请输入数字")
+
+多个 except
+一个 try 可以对应多个 except。
+例如：
+try:
+    file=open("students.json","r")
+    data=json.loads(file.read())
+except FileNotFoundError:
+    print("文件不存在")
+except json.JSONDecodeError:
+    print("JSON格式错误")
+   一个try可以有多个except
+
+finally（重点）
+格式：
+try:
+    可能错误代
+except:
+    错误处理
+finally:
+    一定执行
+成功或失败都会执行即是finally
+finally有什么用？
+最经典：
+关闭资源。
+文件关闭一般不用 finally
+
+with open 本质
+try:                   #尝试可能错误的代码
+    file=open()
+    操作
+finally:	      #最后都会关闭	
+    file.close()
+with 是 Python帮你封装好的资源管理方式。
+
+初级
+try:
+    ...
+except:
+    ...
+
+进阶
+try:
+    ...
+except ValueError:
+    ...
+
+项目级
+try:
+    ...
+except FileNotFoundError:
+    ...
+except json.JSONDecodeError:
+    ...
+except Exception:
+    ...
