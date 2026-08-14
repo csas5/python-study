@@ -1,0 +1,235 @@
+模块职责
+看到需求应该要知道这个功能属于谁
+比如：
+
+需求		所属模块
+增加学生		manager.py
+学生属性		student.py
+保存数据		data.py
+输入检查		utils.py
+管理员登录	login.py
+
+这就是软件设计中的：单一职责原则（Single Responsibility Principle）
+
+变量属不属于全局变量取决于他的位置
+列如：写在
+def main():
+    students = []里面
+它是：main函数的局部变量 在main创建到main结束然后销毁
+如果：
+students=[]
+def main():
+    pass
+那么它才是：模块级变量（通常叫全局变量）
+
+函数修改列表和整数修改不同之处：
+列表修改对象本身 整数重新绑定变量
+
+多文件项目如何传数据？
+
+谁创建数据，谁管理生命周期。
+比如main函数创建students=[]
+传递到其他文件最后都通过data保存
+
+为什么大型项目不用大量全局变量？
+
+假设：创建复数数据给到特定的文件就叫global.py
+然后有复数的文件去调用这个特定的文件结果会是任何地方都可以修改
+比如A文件删除掉global文件了的student，如students.clear（）那么其他文件就会发现数据消失
+这叫：全局状态污染    所以项目更应该：传参数
+
+开发中的一个重要思想
+不要想：“这个变量怎么让所有文件都能访问？”
+
+应该想：“这个数据应该属于谁？”
+例如：学生列表不属于所有模块，属于学生管理系统
+所以：由manager管理 or main控制管理周期
+
+什么时候用类？什么时候用函数？
+utils.py里面放什么？
+可以放：输入验证 格式转换 ...
+
+什么时候真的拆？
+判断标准：
+1.文件超过300行
+2.出现重复代码3次以上
+3.一个文件负责两个完全不同的事情
+
+设计项目时：
+名词：例如：学生、书、用户、订单   优先考虑类
+动词：例如：增删查改 考虑：函数
+
+
+Python模块、包、import机制
+为什么import student可以使用另一个文件的函数和内容
+
+什么是模块（module）
+python中一个.py就是一个模块
+简单理解：文件 = 模块  student.py==student模块
+为什么需要模块？
+项目越来越大代码越来越多需要拆成模块
+
+import到底做了什么？
+step1.python执行student.py
+step2.加载文件 import的时候：Python会执行模块里的代码。
+
+两种常见导入方式
+1.import student
+使用：student.Student()
+优点：清楚知道来源。
+
+例如：
+student.Student
+data.save_students
+
+2.from student import Student
+使用：Student()
+优点：少写一点 大型项目可能出现名字冲突
+例如：两个文件都有user
+
+模块之间的数据传递
+假如main函数创建了students=[]
+student.py定义了一个添加函数为何可以
+因为：main调用：student.add_student(students)传递的是对象引用,不是复制文件。
+
+什么是包（package）
+当项目更大：
+一个文件夹里面：
+几十个py文件。
+
+例如：
+shop
+├── user
+│   ├── login.py
+│   └── register.py
+
+├── order
+
+│   ├── create.py
+│   └── pay.py
+
+这种：文件夹组织代码。叫：包
+简单理解：模块：一个py文件  包：一个文件夹里面有很多模块
+
+为什么以后公司项目大量使用包？
+比如：一个网站：
+可能：
+
+project
+
+
+├── users
+
+
+│   ├── models.py
+
+
+│   ├── views.py
+
+
+│   └── service.py
+
+
+
+
+├── products
+
+
+│   ├── models.py
+
+
+│   └── views.py
+
+
+
+
+├── database
+
+
+│   └── mysql.py
+
+如果没有包，全是单一的模块会混乱
+
+_name__是什么？
+例如：
+def test():
+    print("测试")
+if __name__ == "__main__":
+    test()
+意思：只有直接运行这个文件：才执行测试代码。如果被import：不执行。
+__name__用于判断：当前文件是自己运行还是被导入。
+
+
+虚拟环境 venv
+假设有项目A和项目B需要的环境不相同可能发生版本冲突
+所以我们希望：
+项目A
+ └── 自己的Python环境
+     └── requests 2.31
+
+项目B
+ └── 自己的Python环境
+     └── requests 2.32
+
+这就是：虚拟环境（virtual environment）
+
+什么是 venv？
+Python自带一个创建虚拟环境的工具：venv
+它的作用可以简单理解成：给每个项目建立一个独立的 Python 工作环境。
+例如：
+
+student_system
+│
+├── main.py
+├── student.py
+├── data.py
+│
+└── venv/ 
+以后你在这个项目里安装第三方库：
+venv
+ ├── requests
+ ├── flask
+ └── ...不会轻易污染其他项目。
+
+什么是 pip？
+pip 可以理解成：Python 的第三方包安装工具。
+例如以后你想安装 Flask：pip install flask 
+关系是：
+venv
+↓
+创建独立环境
+
+pip
+↓
+往这个环境里面安装第三方库
+
+什么是第三方库？
+import json   json 是 Python 自带的标准库。
+不需要：pip install json
+
+而 Flask：from flask import Flask
+Flask 默认不是 Python 核心标准库的一部分。所以通常需要安装
+
+requirements.txt 是干什么的？
+这是企业开发里非常重要的东西
+假设你的项目安装了：Flask   requests  pytest
+requirements.txt 可以记录项目依赖。
+例如：Flask==3.x.x
+requests==2.x.x
+pytest==8.x.x
+可以根据这个文件安装依赖。
+
+整个关系串起来
+Python项目
+    │
+    ├── venv
+    │    ↓
+    │  独立环境
+    │
+    ├── pip
+    │    ↓
+    │  安装第三方库
+    │
+    └── requirements.txt
+         ↓
+       记录项目依赖
