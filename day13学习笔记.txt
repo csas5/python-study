@@ -1,0 +1,339 @@
+异常处理进阶
+except:    缺点:太宽泛
+更好的写法：
+明确指定异常：
+try:
+    age = int(input())
+except ValueError:
+    print("请输入正确的数字")
+这样程序的意思就非常清楚：如果“类型转换失败”，执行这里。
+
+| 异常                  		| 常见情况      |
+| ------------------- 		| --------- |
+| ValueError       		| 值无法转换     |
+int("abc")  值本身不符合要求
+              
+| TypeError        		| 类型使用不正确   |  
+
+"张三" + 18  类型使用不正确，例如把不能相加的类型直接相加
+       
+| FileNotFoundError		| 文件不存在     |
+	      
+| ZeroDivisionError		| 除数为0      |                  
+
+| KeyError          		| 字典中不存在这个键 | 
+
+student = {"name": "张三"}
+student["age"]                    这里 "age" 不存在
+
+| IndexError        		| 列表下标越界    |            
+students = ["张三", "李四"]   students[5]        下标只有0 1
+ 
+因为第一次启动时文件肯定不存在所以如果文件不存在使用加载文件函数：
+data.load_students()
+可能产生：FileNotFoundError
+结构：
+try:
+    可能出错的代码
+except 某种异常:
+    出错后的处理
+
+第三个部分else
+结构：
+try:
+    ...
+except ValueError:
+    ...
+else:
+    ...
+意思是：try中的代码没有发生异常，才执行 else
+如：try-成功？否-except 是-else
+
+finally表示：无论有没有异常，最后都执行。
+
+完整结构：
+try:
+    ...
+except:
+    ...
+else:
+    ...
+finally:
+    ...
+记住四个关键词：
+try      尝试执行
+except   出错怎么办
+else     没出错怎么办
+finally  最后一定执行
+
+不要无脑使用：except
+例如：变量写错
+代码逻辑错误
+文件编码错误
+全部被except：pass 包括你自身的代码问题
+
+新的异常工具：raise
+它的作用可以简单理解成：主动制造一个异常。
+例如，我们规定：年龄不能小于0。
+那么程序发现：age = -10
+就可以主动告诉程序：这个数据不合法。
+raise
+ ↓
+主动产生异常
+
+except
+ ↓
+处理异常
+
+raise 不是“修复错误”，而是：主动告诉程序：这里出现了一个异常情况。
+raise 到底解决什么问题？
+第一类：Python自己发现错误
+例如：int（“abc”）
+Python自己知道："abc" 不能转换成整数。于是自动产生：ValueError
+
+第二类：程序自己的业务规则
+例如：成绩必须在 0~100
+年龄必须 > 0
+学生姓名不能为空
+Python并不知道你的这些业务规则。
+比如：age = -5对于python来讲是完全合法的正整数
+但对于你的学生系统来说：-5岁是不合理的数据。
+这时候就需要程序员主动判断，并在不合法时 raise 
+
+异常有两种来源：Python自动产生，或者程序员主动 raise。
+
+关键概念：日志
+
+以前：
+发生错误
+ ↓
+except
+ ↓
+print("出错了")
+
+程序一关闭：print信息就没了。
+
+公司项目需要日志日志（logging）
+日志可以记录：
+什么时候发生错误
+哪里发生错误
+是什么错误
+例如概念上：
+2026-08-14 23:20
+ERROR
+读取 students.json 失败
+
+print() 和 logging 的区别
+print()  当前正在操作程序的人看。
+logging  开发人员、运维人员排查问题。如：ERROR: students.json读取失败
+所以：
+用户提示 → print
+程序运行记录 → logging
+
+生产项目通常会同时考虑用户提示 + 错误记录 也就是：print() + logging
+
+logging 入门
+Python标准库自带：logging 不需要 pip 安装。
+
+logging
+    ↓
+专门记录程序运行信息
+
+最常见的日志等级：
+DEBUG
+INFO      		正常运行的信息：程序启动成功加载学生数据
+WARNING	有问题，但程序还能继续：学生数据为空
+ERROR		发生错误：students.json读取失败
+CRITICAL		严重错误：程序无法继续运行
+
+logging 的实际作用
+学生管理系统放进来：
+程序启动
+  ↓
+加载 students.json
+  ↓
+成功？
+ ├── 是 → logging.info()
+ │
+ └── 否 → logging.error()
+例如以后你看到日志：INFO: 学生数据加载成功  说明程序正常。
+如果看到：ERROR: students.json读取失败  开发人员数据加载环节出现问题。
+
+logging.info()记录正常运行信息。比如：数据加载成功  学生添加成功
+logging.error()记录错误。  比如：文件读取失败
+
+一个非常重要的开发习惯
+不要把所有事情都记录成 ERROR。
+比如：学生添加成功应该：INFO
+students.json读取失败应该：ERROR
+也就是日志等级要和事情的严重程度匹配！！！
+
+日志应该记录在哪里？
+比如学生添加成功，最合理的是在“添加学生这个业务操作完成”的地方记录
+添加学生
+   ↓
+对应业务函数
+   ↓
+操作成功
+   ↓
+logging.info()
+
+真正写 logging
+最基础的结构：import logging 程序不需pip
+
+先理解：
+logging.info()
+       ↓
+记录一条 INFO 日志
+
+logging.warning()
+       ↓
+记录一条 WARNING 日志
+
+logging.error()
+       ↓
+记录一条 ERROR 日志
+
+特别区分：
+WARNING：有异常情况，但这是可以接受/预期的
+ERROR：某个本来应该成功的操作实际失败了
+
+日志真正的作用：让程序发生过什么事情，能够被记录下来。
+先理解“日志配置”是什么
+最简单的：
+import logging
+logging.info("学生添加成功")
+正式项目希望什么时候发生 谁的日志 什么级别 具体内容
+例如：2026-08-15 18:00:21 - INFO - 学生添加成功
+
+日志输出到哪里？
+最简单的是：控制台  即：vscode的终端
+但正式项目还会：
+程序
+ ↓
+logging
+ ↓
+日志文件
+以后程序的日志内容都会进入app.log
+
+这里有个非常重要的区别
+print()：用户当前看到
+logging：程序运行记录
+
+可能同时出现：
+用户界面：
+请输入学生姓名：  这是 print() / input() 的事情。
+and
+INFO - 学生添加成功   是 logging 的事情。两者不是互相替代。
+
+日志的“格式”
+这个 时间 - INFO - 内容 是谁规定的？
+自己配置日志格式。我们可以自己决定日志长什么样
+例如：时间 - 等级 - 内容  也可：等级 - 内容
+甚至：时间 - 模块名 - 等级 - 内容
+
+常见信息
+%(asctime)s 	表示时间
+%(levelname)s 	日志等级
+%(message)s 	日志内容
+
+概念上：%(asctime)s - %(levelname)s - %(message)s
+就对应：时间 - 等级 - 内容
+
+第一段 logging
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+logging.info("学生添加成功")
+运行以后，你会看到类似：2026-08-15 18:10:21,123 - INFO - 学生添加成功
+这里最关键的是：level=logging.INFO  表示：最低记录等级从 INFO 开始。
+
+为什么要设置 level？
+假设：logging.basicConfig(level=logging.WARNING)  表示从warning开始记录
+也就是说：level 决定“从什么等级开始记录”。
+
+关键的区别：level 和日志等级不是一回事
+例如：logging.basicConfig(level=logging.WARNING) 
+这里的warring不是说现在发生了一个warning
+而是：“日志系统从 WARNING 这个等级开始记录。”
+
+真正产生一条 WARNING 是：logging.warning("students.json不存在")
+
+所以：level=WARNING和logging.warning(...)完全不同
+
+为什么要写入文件？
+现在日志可能只是出现在 VSCode 终端：
+INFO - 学生添加成功
+ERROR - 保存数据失败
+程序一关闭，这些信息就不方便再查看了。
+
+logging的两个重要目标
+日志系统通常同时解决：
+1. 给开发人员看
+例如：ERROR - 保存学生数据失败
+2.留下历史记录
+例如第二天还能看到：2026-08-15 18:20:31 - INFO - 学生添加成功
+
+先理解一个新概念：输出位置
+日志最终要“输出”到某个地方。
+常见的有：控制台  文件
+而现在我们要增加：app.log
+
+一个非常重要的参数：filename
+例如：
+logging.basicConfig(
+    level=logging.INFO,
+    filename="app.log",
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+这里的filename="app.log" 意思为：把日志写入app.log
+于是：logging.info("学生添加成功")就会写进：app.log
+
+文件究竟生成在哪里？
+取决于：程序当前工作目录（working directory） 所以项目经常明确指定logs/app.log
+而不是随手写一个：app.log
+现在先理解：filename 决定日志写到哪个文件。
+
+日志文件和 students.json 不一样
+students.json是：业务数据  	里面保存学生信息。
+app.log是：程序运行记录  	里面记录程序发生过什么。
+
+filemode、追加和覆盖
+这里有一个你马上会遇到的问题：程序每运行一次，app.log 里的内容会怎么样？答：越来越大
+
+为什么 app.log 会越来越大？
+默认情况下，日志文件采用的是：追加（append）
+也就是说：每一次运行不会将上次的结果覆盖所以文件会越来越大
+
+filemode 是什么？
+filemode 用来控制：打开日志文件时，采用什么文件写入模式。
+
+最重要的是先记两个：a and w
+a：append，追加  	filemode="a"  意思：在原来的文件后面继续写。
+w：write，覆盖	filemode="w”意思：打开文件时重新写入，原来的内容会被覆盖。
+
+所以两者最大的区别
+a
+↓
+追加
+↓
+旧内容保留
+
+w
+↓
+覆盖
+↓
+旧内容清空
+
+为什么日志通常更适合追加？
+因为日志最重要的价值之一就是：保留历史。
+
+但是 w 不是没用
+w 也有它的使用场景。
+比如你现在只是做：logging学习测试想
+每次运行都得到一个全新的 app.log。
+那么：filemode="w"就方便
