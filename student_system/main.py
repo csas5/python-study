@@ -16,7 +16,7 @@ def input_score():
             continue
         if score<0 or score>100:   #小优化点可以不要else 因为if执行了continue下面便不会执行
             print("error")
-            continue
+            continue  #直接进入下一轮 while
         return score
 
 def input_age():

@@ -22,26 +22,26 @@ import os
 #     except:
 #         return []             #这是裸异常捕获  可以吃掉所有错误甚至你的代码拼写错误也可以
 
-def load_students():
+# def load_students():
 
-    try:                                             #try：下面代码可能出现错误，如果出现错误，不让程序直接崩溃。
+#     try:                                             #try：下面代码可能出现错误，如果出现错误，不让程序直接崩溃。
 
-        with open("students.json","r") as file:      #as file  给打开的文件起一个变量名字：
-            content=file.read() 
+#         with open("students.json","r") as file:      #as file  给打开的文件起一个变量名字：
+#             content=file.read() 
 
-        data=json.loads(content)
+#         data=json.loads(content)
 
-        return data
-
-
-    except FileNotFoundError:                      #处理文件错误
-
-        return []
+#         return data
 
 
-    except json.JSONDecodeError:                   #处理JSON格式错误。
+    # except FileNotFoundError:                      #处理文件错误
 
-        return []
+    #     return []
+
+
+    # except json.JSONDecodeError:                   #处理JSON格式错误。
+
+    #     return []
 
 def student_to_dict(student):     #Student对象 → 字典
     student_dict={
