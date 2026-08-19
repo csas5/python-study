@@ -98,32 +98,6 @@ def input_name():
             continue
         return name
 
-# def add_student_flow(students):
-#     name = input_name()
-#     age = input_age() 
-#     score= input_score()
-#     student.add_student(students,name,age,score)
-#     logging.info("学生信息添加成功：%s " % name)
-#     database.save_students(students)
-
-# def delete_student_flow(students):
-#     name = input("please input a name:")       
-#     result=student.delete_student(students,name)         
-#     if result:
-#         print("删除成功")
-#     else:
-#         print("删除失败")
-#     database.save_students(students)
-
-# def update_score_flow(students):     #update_score_flow() 的职责是：完成“一次修改成绩操作” 所以执行完直接回到main菜单
-#         name = input("please input a name:")
-#         New_score=input_score()
-#         result=student.update_student_score(students, name, New_score)
-#         if result:
-#                 print("成绩修改成功！")
-#                 database.save_students(students)
-#         else:
-#             print("未找到该学生")
 
 
 
@@ -143,18 +117,108 @@ def show_students_flow():
         print("score = %s" % student[3]) 
 
 def delete_students_flow():
-    name = input_name()          
-    database.delete_student(name)
+    name = input_name()
+    student_id=select_student_id_by_name(name)  #这个函数已经有notfoun所以建议flow直接判断
+    if student_id is None:   
+        return        
+    result=database.delete_student(student_id)
+    if result :
+        print("DELETE SUCCESSFUL")
+    else:
+        print("DELETE failed")
 
 def update_score_flow():
-    name = input_name() 
-    new_score = input_score()
-    database.update_score(name,new_score)
+    name = input_name()
+    student_id=select_student_id_by_name(name)
+    if student_id is None:   
+            return  
+    new_score = input_score()   #如果学生根本不存在，就没必要继续问用户输入新成绩
+    result=database.update_score(new_score,student_id)
+    if result :
+        print("UPDATE SUCCESSFUL")
+    else:
+        print("UPDATE failed")
 
 
-
-
+def select_student_id_by_name(name):
+    results=database.find_students_by_name(name)
+    if len(results) == 0:
+        print("Not found!")
+        return 
+    elif len(results) == 1:
+        student_id=results[0][0]        #这里的results[0]取的是一整条数据，result[0][0]取得才是id
+        return student_id
+    elif len(results) >=2:
+        for result in results:
+            print("id = %s,name = %s,age = %s,score = %s" % (result[0],result[1],result[2],result[3])) #这里0123分别对应id-----
+        while True:
+            try:        #多候选时，id 输入异常处理
+                student_id = int(input("please input a id:"))
+            except ValueError:
+                print("please try again")
+                continue
+            for result in results:              #for 检查所有候选
+                if student_id == result[0]:    #找到合法id
+                    return student_id
+            print("please try again")   #for 结束以后才能确定“一个都没匹配”
 
     
+def show_students_by_score_desc_flow():
+    students = database.get_students_by_score_desc()
+    for student in students:
+        print("name= %s , age= %s, score = %s" % (student[1],student[2],student[3]))
 
+def show_top_students_flow():
+    while True:
+        try:
+            limit = int(input("please input limit:"))
+        except ValueError:
+            print("please try again")    #缺少continue
+            continue
+        if limit >0:
+            students=database.get_top_students(limit)
+        else:
+            print("please input a number greater than 0")  #提示词优化
+            continue
+        for student in students:
+            print("name= %s , age= %s, score = %s" % (student[1],student[2],student[3]))
+            #这里放break会导致打印完一行数据直接结束函数所以return更好但是缩进自己判断  
+        return
 
+def search_students_by_name_flow():
+    keyword = input("please input a keyword:")
+    students = database.search_students_by_name(keyword)
+    if len(students)>0:    #但这里的 student 还没有定义需要判断>0
+        for student in students:
+            print("name= %s , age= %s, score = %s" % (student[1],student[2],student[3]))
+    else:
+        print("NOT FOUND")
+        return
+#这里不需要return可以删，因为 for 全部执行完以后，函数本身就自然结束了。
+# #区分两个变量：students → 所有搜索结果
+# student  → for 循环里当前这一条学生数据
+
+def count_students_flow():
+    result = database.count_students()
+    print("WE HAVE %s students" % result)
+
+def average_score_flow():
+    result=database.get_average_score()
+    if result is None:
+        print("NOT FOUND students DATA")
+        return          #注意流程控制点，这里没有return会继续往下执行
+    print("average=%s" % result)
+
+def max_score_flow():
+    result=database.get_max_score()
+    if result is None:
+        print("NOT FOUND MAX score")
+        return
+    print("MAX score = %s" % result)
+
+def min_score_flow():
+    result=database.get_min_score()
+    if result is None:
+        print("NOT FOUND min score")
+        return
+    print("min score = %s" % result)

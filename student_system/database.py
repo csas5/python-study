@@ -1,98 +1,25 @@
-import json
 import student
-import os
-import logging
 import sqlite3
-#原先为data.py现在改成数据库  职责为真正操作数据库
-# def save_students(students):
-#     data=json.dumps(students)            #()括号内放数据，外头用变量赋值
-#     file=open("students.json","w")       #注意w小写 and 什么数据就用什么名   以后学习异常处理后，可以改：with open("students.json","w") as file: 效果涵盖了自动关闭
-#     file.write(data)                    #这里可以优化成with open
-#     file.close()
-
-# def load_students():
-
-#     try:                                #异常处理的运用优化  try：下面代码可能出现错误，如果出现错误，不让程序直接崩溃。
-#         file=open("students.json","r")  #打开文件读取模式
-#         content=file.read()             #将file文件里的students.json内容赋值给content
-#         file.close()                    #关闭文件
-
-#         data=json.loads(content)         #用json解压content的内容赋值给data
-            
-#         return data                      #返回data
-
-#     except:
-#         return []             #这是裸异常捕获  可以吃掉所有错误甚至你的代码拼写错误也可以
-
-# def load_students():
-
-#     try:                                             #try：下面代码可能出现错误，如果出现错误，不让程序直接崩溃。
-
-#         with open("students.json","r") as file:      #as file  给打开的文件起一个变量名字：
-#             content=file.read() 
-
-#         data=json.loads(content)
-
-#         return data
-
-
-    # except FileNotFoundError:                      #处理文件错误
-
-    #     return []
-
-
-    # except json.JSONDecodeError:                   #处理JSON格式错误。
-
-    #     return []
-
-def student_to_dict(student):     #Student对象 → 字典
-    student_dict={
-        "name": student.name,
-        "age": student.age,
-        "score": student.score
-        }
-    return student_dict
-
-def save_students(students):
-    student_dicts=[]                              #创建一个列表
-    for student in students:                        #遍历对象
-        student_dict=student_to_dict(student)      #使用转化词典函数去赋值给某个变量
-        student_dicts.append(student_dict)          #添加函数
-    data=json.dumps(student_dicts)                  #json.save的固定流程
-    try:
-        with open("students.json","w") as file:
-            file.write(data)
-            logging.info("保存学生数据成功") 
-    except OSError:
-        logging.error("学生数据保存失败")     #优化点：logging.exception()这样以后不仅知道“保存失败”，还能看到具体异常和 traceback。
-
-def dict_to_student(student_dict):
-    name = student_dict["name"]
-    age = student_dict["age"]
-    score = student_dict["score"]
-
-    student = Student(name, age, score)   #这里未定义Student是因为要导入类  创建一个对象赋值个某个对象
-
-    return student
 
 # data → 字典列表
 # student_dict → 一个字典
 # student → 一个 Student 对象
 # students → Student对象列表
 
-def load_students():
-    if not os.path.exists("students.json"):
-        return []
-    with open("students.json","r") as file:   
-            content=file.read()
-            data=json.loads(content)
-    students=[] 
-    for student_dict in data:
-        number=dict_to_student(student_dict)
-        students.append(number)
-    return students
 
 #数据库
+def find_students_by_name(name):
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT *FROM students WHERE name = ?",(name,))
+    results = cursor.fetchall()  #这时候 id 已经在结果里面了  注意，id需要用到索引比如studnet[0][0]对应的就是id
+    conn.close()
+    return results
+
+
+
+
+
 def init_db():
     conn = sqlite3.connect("students.db")   #如果 students.db 不存在，SQLite 会自动创建。 这里的connect相当于打开连接
     cursor = conn.cursor()
@@ -122,16 +49,108 @@ def get_students():  #把数据库里的所有学生查出来并返回。
     conn.close()
     return students #这个函数的职责要求把查询结果交出去，所以这里需要 return students。
 
-def delete_student(name):
+def delete_student(student_id):          #name改成id
     conn = sqlite3.connect("students.db") 
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM students WHERE name = ?",(name,))  #"SQL语句",(name,)别忘了逗号  不需要多扩一层括号
+    cursor.execute("DELETE FROM students WHERE id = ?",(student_id,))  #"SQL语句",(name,)别忘了逗号  不需要多扩一层括号
+    result = cursor.rowcount  # # 这次 DELETE 影响了几条数据
     conn.commit()
     conn.close()
+    if result == 1:
+        return True
+    else:
+        return False 
     
-def update_score(name, new_score):
+def update_score(new_score,student_id):
     conn = sqlite3.connect("students.db") 
     cursor = conn.cursor()
-    cursor.execute("UPDATE students set score = ? WHERE name = ?",(new_score,name,))    #不是form 而是直接update students  而且set后面要有列的值
+    cursor.execute("UPDATE students SET score = ? WHERE id = ?",(new_score,student_id))    #不是form 而是直接update students  而且set后面要有列的值
+    result = cursor.rowcount
     conn.commit()                                                   #只有单元素 tuple时，逗号才是必须的 么有逗号只能算字符串
     conn.close()
+    if result == 1:
+        return True
+    else:
+        return False
+
+def get_students_by_score_desc():
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM students ORDER BY score DESC")
+    students = cursor.fetchall()
+    conn.close()
+    return students
+
+def get_top_students(limit):   #这一版固定查成绩前三名。加入参数可以自定义前n名
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM students ORDER BY score DESC LIMIT ?",(limit,))
+    students = cursor.fetchall()
+    conn.close()
+    return students
+
+
+def search_students_by_name(keyword):
+    result ="%"+keyword+"%"  #字符串拼接
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM students WHERE name LIKE ?",(result,))
+    students = cursor.fetchall()
+    conn.close()
+    return students
+    
+def count_students():
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM students")
+    result = cursor.fetchone()   #这里需要返回真正的数量需要索引
+    conn.close()
+    return result[0]     
+
+def get_average_score():
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT AVG(score) FROM students")
+    result = cursor.fetchone()
+    conn.close()
+    return result[0]     #真实边界情况如果 students 表里一条学生都没有，AVG(score) 的结果会是 None
+#也就是result[0]里面可能存着None
+
+
+def get_max_score():
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT MAX(score) FROM students")
+    result = cursor.fetchone()
+    conn.close()
+    return result[0]    #注意边界
+
+def get_min_score():
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT MIN(score) FROM students")
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] 
+
+
+def test_class_name_exists():
+    has_class_name = False
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(students)")
+    columns = cursor.fetchall()
+    for column in columns:
+        if column[1] == "class_name":
+            has_class_name = True
+    if not has_class_name:
+        cursor.execute("ALTER TABLE students ADD COLUMN class_name TEXT")  #等遍历完了在判断存不存在
+        conn.commit()
+        has_class_name = True     #因为既然刚刚成功添加了这一列，那么当前真实状态已经是 True否则打印依旧false
+    print(has_class_name)
+    conn.close()
+
+test_class_name_exists()
+
+
+
