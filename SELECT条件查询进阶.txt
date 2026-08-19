@@ -1,0 +1,262 @@
+ORDER BY：排序查询
+作用：按照成绩从高到低查看学生
+
+例如：
+SELECT * FROM students
+ORDER BY score DESC;
+
+ORDER BY score 即为：按score排序
+DESC 即为：从大到小
+
+反过来：
+ORDER BY score ASC
+ASC 即为：从小到大
+
+
+ASC  → 升序 → 小到大
+DESC → 降序 → 大到小
+
+get_students_by_score_desc()
+show_students_by_score_desc_flow()组成工作流
+
+LIMIT：限制查询数量假设成绩排序后有 100 个学生
+但你只想看：成绩最高的前 3 名
+SQL语句：
+SELECT * FROM students
+ORDER BY score DESC
+LIMIT 3;  #只显示前三名   即为：排序完成后只拿前 3 条
+
+LIMIT n ： 最多返回 n 条记录
+show_top_students_flow()
+
+
+第三个 SELECT 新知识点：LIKE 模糊查询。
+LIKE 是干什么的？如果你只记得名字里有 "tom"，就可以用：
+比如：
+SELECT * FROM students
+WHERE name LIKE '%tom%';
+这里最重要的是：% → 任意长度的任意字符
+ '%tom%' 即为：大白话就是：
+前面可以有东西，后面也可以有东西，只要中间包含 tom 就行。
+三种最常用写法：
+包含：LIKE '%tom%'
+以 tom 开头：LIKE 'tom%'
+以 tom 结尾：LIKE '%tom'
+
+
+database.py
+→ 执行 LIKE 查询
+→ return 结果
+student.py
+→ 获取用户关键字
+→ 调 database.py
+→ 展示结果
+
+keywore怎么变%keywrod%
+简单的写法就是字符串拼接：keyword = "%" + keyword + "%"
+可以用 f-string：keyword = f"%{keyword}%"
+
+SELECT * FROM students
+WHERE name LIKE 'tom%' AND score >= 90;   and条件同时满足
+
+
+SELECT 的聚合统计
+
+1. COUNT()：数一共有多少条数据
+现在如果只想知道：数据库里一共有几个学生？
+就可以:SELECT COUNT(*) FROM students;
+COUNT→ 数数量
+*→ 所有记录
+COUNT(*)→ 一共有多少条记录 最终结果不会返回三个学生，而会返回类似：3
+空表时：COUNT(*) 不会报错  它会告诉你“当前有 0 条记录”。
+
+Python 怎么拿结果
+因为count最终只有一条统计结果。所以适合fetchone()
+所以：result = cursor.fetchone()
+假设数据库有 3 个学生，result 大概是：(3,)、
+注意：result→ (3,)     result[0]→ 3
+也就是说：SQLite 查询结果仍然是一条 tuple，我们要从 [0] 取真正的数量。
+
+AVG()：平均值
+SELECT AVG(score) FROM students;
+AVG=average 求平均值
+AVG(score)→ 求 score 这一列的平均值  当然返回的只有一条结果适用fetchone
+
+MAX()：查询最高成绩。
+SELECT MAX(score) FROM students;
+MAX(score)找 score 这一列里的最大值也就是最高成绩 返回的只有一条结果适用fetchone
+
+
+
+为什么avg max min 要判断none。因为如果连一条成绩都没有，就没有“平均值 / 最大值 / 最小值”
+SQLite 返回 NULL→ Python 里得到 None
+
+
+
+注意：count（score）中如果数据中有NULL，不会数NULL
+因为 COUNT(score) 数的是：score 这一列里有多少个非 NULL 的值。
+COUNT(*)      → 数行数
+COUNT(score)  → 数 score 中非 NULL 的数量
+AVG(score)    → 只对非 NULL 的 score 求平均
+
+AVG(score)会忽略数据NULL，不会把 NULL 当成 0。
+所以实际计算的是：(80 + 90 + 100) / 3= 90
+
+
+下一大节：GROUP BY + HAVING
+SELECT AVG(score) FROM students;作用为计算全部学生的平均成绩
+但是如果学生表增加一个字段class_name
+
+数据变成：
+name    class_name    score
+tom     class1        80
+jack    class1        90
+lucy    class2        95
+bob     class2        85
+如果想知道class1和class2平均多少就会需要GROUP BY class_name;
+列如：
+SELECT class_name, AVG(score)
+FROM students
+GROUP BY class_name;
+
+GROUP BY class_name
+→ 按班级分组
+
+AVG(score)
+→ 每一组分别计算平均成绩
+
+
+GROUP BY 可以配合哪些聚合函数？
+count avg max min 都可以配合
+例如：
+SELECT class_name, COUNT(*)
+FROM students
+GROUP BY class_name;   表示：每个班分别有多少学生。
+max （score）  表示：每个班最高分是多少  类推到min avg
+
+
+GROUP BY
+→ 先把数据分组
+
+COUNT / AVG / MAX / MIN
+→ 再分别统计每一组
+
+HAVING 是什么？
+假设我们已经算出了每个班平均分：
+class1 → 85
+class2 → 90
+class3 → 76
+现在只想看：平均成绩 >= 80 的班级
+这时候：
+SELECT class_name, AVG(score)
+FROM students
+GROUP BY class_name
+HAVING AVG(score) >= 80;
+可以得知：
+HAVING→ 对“分组之后的结果”继续筛选
+
+WHERE 和 HAVING 最容易混
+WHERE对原始数据先筛选：WHERE age >= 20  哪些学生可以进入统计。
+HAVING对分组统计后的结果再筛选：HAVING AVG(score) >= 80 哪些统计结果最后留下来。
+
+例如：
+SELECT class_name, AVG(score)
+FROM students
+WHERE age >= 20
+GROUP BY class_name
+HAVING AVG(score) >= 80;
+分解：
+① 只留下 age >= 20 的学生
+② 按 class_name 分组
+③ 每组计算 AVG(score)
+④ 只留下平均分 >= 80 的组
+
+CREATE TABLE
+→ 创建新表
+
+ALTER TABLE
+→ 修改已经存在的表结构
+
+第一步：表结构升级
+想新增加：class_name TEXT 有一个数据库问题，表已经存在，这里需要给出新的sql ALTER TABLE
+
+alter table 作用：修改已经存在的表结构。
+比如增加一列：
+ALTER TABLE students    #修改已经存在的 students 表
+
+ADD COLUMN class_name TEXT;   ADD COLUMN 添加一列  
+
+class_name TEXT  新列叫 class_name，类型是文本
+
+思考：第一次启动程序没问题，但是第二次及其之后会报重复列错误作何解？
+所以我们不能简单把 ALTER TABLE 永久塞进 init_db() 每次都执行。
+
+新知识：先检查表里有没有这一列
+SQLite 可以查看表结构：
+PRAGMA table_info(students);  查询 students 表现在有哪些列
+注意，这不是普通的学生数据查询，而是：查询数据库表本身的结构信息。
+
+基础安全迁移流程：
+程序启动
+↓
+init_db()
+↓
+确保 students 表存在
+↓
+查询表结构 PRAGMA table_info(students)
+↓
+检查有没有 class_name
+↓
+没有
+→ ALTER TABLE 添加
+
+已经有
+→ 什么都不做
+
+
+PRAGMA 返回什么
+cursor.execute("PRAGMA table_info(students)")
+columns = cursor.fetchall()
+假如得到：
+[
+    (0, "id", "INTEGER", 0, None, 1),
+    (1, "name", "TEXT", 0, None, 0),
+    (2, "age", "INTEGER", 0, None, 0),
+    (3, "score", "REAL", 0, None, 0)
+]
+只需要注意：
+
+column[0] → 列编号
+column[1] → 列名
+column[2] → 数据类型
+
+我们要添加的class_name属于列名 即是：column[1]
+所以判断有没有某个 column[1] == "class_name"
+
+
+
+
+
+GROUP BY 实操
+功能一：统计每个班有多少学生
+SELECT class_name, COUNT(*)
+FROM students
+GROUP BY class_name;
+
+功能二：统计每个班平均成绩
+SELECT class_name, AVG(score)
+FROM students
+GROUP BY class_name;
+
+索引：
+result[0] → 班级
+result[1] → 平均成绩
+
+功能三：HAVING 筛选分组结果
+比如：
+只显示平均成绩 >= 85 的班级。
+SELECT class_name, AVG(score)
+FROM students
+GROUP BY class_name
+HAVING AVG(score) >= ?;传入（85，）
+就是先 GROUP BY 分班每班 AVG(score)只保留平均分 >= 85 的班
