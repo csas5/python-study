@@ -20,7 +20,7 @@ def find_students_by_name(name):
 
 
 
-def init_db():
+def init_db():  #建立学生表
     conn = sqlite3.connect("students.db")   #如果 students.db 不存在，SQLite 会自动创建。 这里的connect相当于打开连接
     cursor = conn.cursor()
     cursor.execute("""              
@@ -34,10 +34,22 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_student(name, age, score):
+def init_classes_table():  #建立班级表
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()     #这里的text是字符串，integer整数，real小数，id用主键
+    cursor.execute("""CREATE TABLE IF NOT EXISTS classes(
+    id INTEGER PRIMARY KEY,                                     
+    class_name TEXT,
+    teacher TEXT
+    )
+    """)
+    conn.commit()
+    conn.close()
+
+def add_student(name, age, score,class_id):  #这一版可以将classname改成classID了
     conn = sqlite3.connect("students.db")   #如果 students.db 不存在，SQLite 会自动创建。 这里的connect相当于打开连接
     cursor = conn.cursor()   #创建执行 SQL 的 cursor
-    cursor.execute("INSERT INTO students(name,age,score) VALUES(?,?,?)",(name,age,score))
+    cursor.execute("INSERT INTO students(name,age,score,class_id) VALUES(?,?,?,?)",(name,age,score,class_id))
     conn.commit()
     conn.close()
 
@@ -134,7 +146,7 @@ def get_min_score():
     return result[0] 
 
 
-def test_class_name_exists():
+def test_class_name_exists():  #添加class_name到学生表
     has_class_name = False
     conn = sqlite3.connect("students.db") 
     cursor = conn.cursor()
@@ -147,10 +159,85 @@ def test_class_name_exists():
         cursor.execute("ALTER TABLE students ADD COLUMN class_name TEXT")  #等遍历完了在判断存不存在
         conn.commit()
         has_class_name = True     #因为既然刚刚成功添加了这一列，那么当前真实状态已经是 True否则打印依旧false
-    print(has_class_name)
     conn.close()
 
-test_class_name_exists()
+
+def add_class_id_column():    #calss_id是integer整数 这个函数监测classid在不在学生表，不在添加
+    has_class_id = False
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor() 
+    cursor.execute("PRAGMA table_info(students)")
+    columns = cursor.fetchall()
+    for column in columns:
+        if column[1] == "class_id":
+             has_class_id = True
+    if not has_class_id:
+        cursor.execute("ALTER TABLE students ADD COLUMN class_id INTEGER")
+        conn.commit()   #只是如果 class_id 本来就存在，这一次并没有修改数据库，commit() 就相当于空提交。
+    conn.close()
+
+    
+
+def count_students_by_class():  #每班人数
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT class_name, COUNT(*) FROM students GROUP BY class_name")
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+def get_average_score_by_class():   #每班平均分
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT class_name, AVG(score) FROM students GROUP BY class_name")
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+def get_classes_by_average_score(min_score):    #筛选平均分达到要求的班级
+    conn = sqlite3.connect("students.db") 
+    cursor = conn.cursor()
+    cursor.execute("SELECT class_name, AVG(score) FROM students GROUP BY class_name HAVING AVG(score) >= ?",(min_score,))
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+
+def add_class(class_name, teacher):  #输入class班级和老师
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()
+    cursor.execute("INSRT INTO classes(class_name, teacher) VALUES(?,?)",(class_name,teacher))
+    conn.commit()
+    conn.close()
+
+def get_classes():
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM classes")
+    results = cursor.fetchall()
+    conn.close()
+    return results    #每一行大概是(1, "class1", "张老师")  result[0] → id -----
 
 
 
+
+
+def migrate_class_name_to_class_id(): #迁移班级名字到班级id
+    conn = sqlite3.connect("students.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, class_name FROM students WHERE class_id IS NULL AND class_name IS NOT NULL")
+    students = cursor.fetchall()
+    for student in students:
+        student_id=student[0]    #这里取得是student_id
+        class_name = student[1]
+        cursor.execute("SELECT id FROM classes WHERE class_name = ?",(class_name))
+        class_result = cursor.fetchone() #这里查询了class表的id所以返回了classid
+        if class_result is not None:
+            class_id = class_result[0]   #所以这里索引的对象就是id
+            cursor.execute("UPDATE students SET class_id = ? WHERE id = ?",(class_id, student_id))
+                #WHERE id 需要学生id
+    conn.commit()
+    conn.close()
+
+
+migrate_class_name_to_class_id()

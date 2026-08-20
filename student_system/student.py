@@ -98,7 +98,24 @@ def input_name():
             continue
         return name
 
+def input_class_name():
+    while True:
+        class_name = input("please input a class_name:")
+        if class_name =="":
+            print("please try again")
+            continue
+        return class_name
 
+def input_class_id():
+    while True:
+        try:
+            class_id = int(input("please input a class_id:"))
+        except ValueError:
+            print("please try again")
+            continue
+        return class_id
+        
+        
 
 
 
@@ -107,14 +124,16 @@ def add_students_flow():   #不需要传name·····这个 Flow 的职责本�
     name = input_name()
     age = input_age() 
     score= input_score()
-    database.add_student(name, age, score)
+    class_id = select_class_id()
+    database.add_student(name, age, score,class_id)
 
 def show_students_flow():
     students= database.get_students()  #因为要for遍历所以写成students更好
     for student in students:           
         print("name = %s" %  student[1])                 #这里靠索引来打印name，age，score例如：student[0]=id
         print("age = %s" % student[2]) 
-        print("score = %s" % student[3]) 
+        print("score = %s" % student[3])
+        print("class_name = %s" % student[4]) 
 
 def delete_students_flow():
     name = input_name()
@@ -222,3 +241,53 @@ def min_score_flow():
         print("NOT FOUND min score")
         return
     print("min score = %s" % result)
+
+
+
+#记住result返回的只有两个元素（“calss1",3)   result[0]代表班级
+def count_students_by_class_flow():       
+    results=database.count_students_by_class()
+    for result in results:
+        print("class = %s,students = %s\n" % (result[0],result[1]))
+
+def average_score_by_class_flow():
+    results=database.get_average_score_by_class()
+    for result in results:
+        print("class = %s,average = %s\n" % (result[0],result[1]))
+
+def classes_by_average_score_flow():
+    min_score =input_score()
+    results = database.get_classes_by_average_score(min_score)
+    for result in results:
+        print("class = %s,average = %s\n" % (result[0],result[1]))
+# result[0] → class_name
+# result[1] → 聚合结果
+
+
+def add_class_flow():
+    class_name = input_name()
+    teacher = input_name()
+    database.add_class(class_name, teacher)
+
+    print("ADD successful")
+
+def show_classes_flow():
+    results = database.get_classes()
+    for result in results:
+        print("id= %s,class_name = %s,teacher = %s" % (result[0],result[1],result[2]))
+
+
+
+def select_class_id():  #用户选择班级ID
+    results = database.get_classes()
+    for result in results:
+        print("ID= %s,calss_id= %s,teacher = %s" %(result[0],result[1],result[2]))
+    while True:
+        # class_id = input_age()   #这个输入函数不太恰当
+        class_id = input_class_id()  #这里可以整一个input_class_id()函数
+        for result in results:
+            if class_id == result[0]:
+                return class_id
+        print("please try again!")  #这里不需要return打印完直接下一轮循环了
+
+
